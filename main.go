@@ -5,11 +5,14 @@ import (
 	"fmt"
 	internal "github.com/saintbyte/serial_console_viewer/internal"
 	"go.bug.st/serial"
+	"go.bug.st/serial/enumerator"
 	"log"
+	"os"
+	"os/signal"
 )
 
 func listPorts() {
-	ports, err := serial.GetPortsList()
+	ports, err := enumerator.GetDetailedPortsList()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -18,7 +21,11 @@ func listPorts() {
 	}
 	fmt.Printf("Found port:\n")
 	for _, port := range ports {
-		log.Println("\t %v\n", port)
+		fmt.Printf("\t %v\n", port.Name)
+		if port.IsUSB {
+			fmt.Printf("\t\tUSB ID     %s:%s\n", port.VID, port.PID)
+			fmt.Printf("\t\tUSB serial %s\n", port.SerialNumber)
+		}
 	}
 }
 
@@ -35,9 +42,16 @@ func readPort(portName string, config internal.PortConfig) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = port.SetMode(mode)
-	if err != nil {
-		log.Fatal(err)
+	buff := make([]byte, 100)
+	for {
+		n, err := port.Read(buff)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if n == 0 {
+			fmt.Println("\nEOF")
+		}
+		fmt.Printf("%v", string(buff[:n]))
 	}
 }
 
@@ -54,13 +68,22 @@ func main() {
 	flag.IntVar(&portConfig.StopBits, "stopbits", 1, "Stop bits: 0,1,2")
 	flag.Parse()
 
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		for sig := range c {
+			fmt.Println("Receive:", sig.String())
+			os.Exit(0)
+		}
+	}()
+
 	if actionArgs.ListAction {
 		listPorts()
 	}
 	if actionArgs.ReadAction {
 		readPort(portName, portConfig)
 	}
-	if !actionArgs.ListAction || !actionArgs.ReadAction {
+	if !actionArgs.ListAction && !actionArgs.ReadAction {
 		internal.Help()
 	}
 }
