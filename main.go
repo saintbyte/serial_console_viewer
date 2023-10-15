@@ -30,13 +30,20 @@ func listPorts() {
 }
 
 func readPort(portName string, config internal.PortConfig) {
+	/*
+		mode := &serial.Mode{
+				BaudRate: config.BaudRate,
+				DataBits: config.DataBits,
+				Parity:   serial.Parity(config.Parity),
+				StopBits: serial.StopBits(config.StopBits),
+			}
+	*/
 	mode := &serial.Mode{
 		BaudRate: config.BaudRate,
 		DataBits: config.DataBits,
-		Parity:   serial.Parity(config.Parity),
-		StopBits: serial.StopBits(config.StopBits),
+		Parity:   serial.NoParity,
+		StopBits: serial.OneStopBit,
 	}
-
 	log.Println("Open port:", portName)
 	port, err := serial.Open(portName, mode)
 	if err != nil {
@@ -64,8 +71,14 @@ func main() {
 	flag.StringVar(&portName, "port", "/dev/ttyUSB0", "Port to read")
 	flag.IntVar(&portConfig.BaudRate, "baunrate", 9600, "BaudRate/Speed of serial port")
 	flag.IntVar(&portConfig.DataBits, "databits", 8, "Data bits: 5,6,7,8")
-	flag.IntVar(&portConfig.Parity, "Parity", 0, "Parity: 0,1,2")
-	flag.IntVar(&portConfig.StopBits, "stopbits", 1, "Stop bits: 0,1,2")
+	flag.Func("parity", "Parity: NoParity, OddParity, EvenParity, MarkParity, SpaceParity", func(s string) error {
+		portConfig.Parity = int(internal.StringToNoParity(s))
+		return nil
+	})
+	flag.Func("stopbits", "Stop bits: OneStopBit, TwoStopBits, OnePointFiveStopBits", func(s string) error {
+		portConfig.StopBits = int(internal.StringToStopBits(s))
+		return nil
+	})
 	flag.Parse()
 
 	c := make(chan os.Signal, 1)
