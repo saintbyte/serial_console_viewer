@@ -45,6 +45,10 @@ func readPort(portName string, config internal.PortConfig) {
 		StopBits: serial.OneStopBit,
 	}
 	log.Println("Open port:", portName)
+	log.Println("\tBaudRate:", mode.BaudRate)
+	log.Println("\tDataBits:", mode.DataBits)
+	log.Println("\tParity:", internal.NoParityToString(mode.Parity))
+	log.Println("\tStopBits:", internal.StopBitsToString(mode.StopBits))
 	port, err := serial.Open(portName, mode)
 	if err != nil {
 		log.Fatal(err)

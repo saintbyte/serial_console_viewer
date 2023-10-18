@@ -51,6 +51,25 @@ func StringToNoParity(src_string string) serial.Parity {
 	return serial.NoParity
 }
 
+func NoParityToString(src serial.Parity) string {
+	if src == serial.NoParity {
+		return "NoParity"
+	}
+	if src == serial.OddParity {
+		return "OddParity"
+	}
+	if src == serial.EvenParity {
+		return "EvenParity"
+	}
+	if src == serial.MarkParity {
+		return "MarkParity"
+	}
+	if src == serial.SpaceParity {
+		return "SpaceParity"
+	}
+	return ""
+}
+
 func StringToStopBits(src_string string) serial.StopBits {
 	src_string = strings.Trim(src_string, " \n\r")
 	src_string = strings.ToLower(src_string)
@@ -64,4 +83,17 @@ func StringToStopBits(src_string string) serial.StopBits {
 		return serial.OnePointFiveStopBits
 	}
 	return serial.OneStopBit
+}
+
+func StopBitsToString(src serial.StopBits) string {
+	if src == serial.OneStopBit {
+		return "OneStopBit"
+	}
+	if src == serial.TwoStopBits {
+		return "TwoStopBits"
+	}
+	if src == serial.OnePointFiveStopBits {
+		return "OnePointFiveStopBits"
+	}
+	return ""
 }
